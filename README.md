@@ -158,6 +158,11 @@ spec review), **`mp-4model-gate`** (heavyweight PR gate), **`mp-repo-audit`**, *
 **`mp-diagnose`**, **`mp-handoff`**, **`mp-write-a-skill`**, plus writing/productivity skills. See each
 skill's `SKILL.md` for its own trigger + usage.
 
+### Obsidian (the docs/knowledge side of the loop)
+`obsidian-cli`, `obsidian-markdown`, `obsidian-bases`, `mp-obsidian-vault` — read/write/organize an Obsidian
+vault with wikilinks, callouts, properties, and Bases views. Handy for keeping ADRs, decision records,
+audits, and retros as a linked knowledge base the loop reads from and writes back to.
+
 ### Template
 `templates/project-loop-template/` — a generic, un-tied project loop. Copy into `<repo>/.claude/skills/`, fill
 the `<...>` slots, and you have a one-command autonomous builder for that repo.
