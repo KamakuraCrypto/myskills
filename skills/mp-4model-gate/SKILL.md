@@ -1,6 +1,6 @@
 ---
 name: mp-4model-gate
-description: Run a 4-model review gate on a PR — codex gpt-5.5 + gpt-5.4 xhigh premortems plus Claude Opus and Fable as independent Agent-tool reviewers, optional dual-codex architecture review, convergence loop with fix rounds and a verified condition-closure commit. Use when the user wants the full gate / 4-model review on a PR, or for high-risk rungs of a PR ladder (money paths, foundations, hot sell paths); for routine PRs prefer plain /mp-codex-review. Triggers: "4-model gate", "full gate", "run the gate on PR N".
+description: Run a 4-model review gate on a PR — codex gpt-5.5 + gpt-5.4 xhigh premortems plus two independent Claude reviewer seats (strongest available per ~/.claude/MODELS.md) as Agent-tool reviewers, optional dual-codex architecture review, convergence loop with fix rounds and a verified condition-closure commit. Use when the user wants the full gate / 4-model review on a PR, or for high-risk rungs of a PR ladder (money paths, foundations, hot sell paths); for routine PRs prefer plain /mp-codex-review. Triggers: "4-model gate", "full gate", "run the gate on PR N".
 ---
 
 # mp-4model-gate
@@ -9,12 +9,12 @@ The heavyweight PR gate for high-risk changes (money paths, foundations, hot pat
 
 ## When to use
 
-Foundations, money paths, schema that later work builds on. NOT for test-only or doc PRs — dual-codex (`/mp-codex-review`) suffices there. Each model catches a distinct class: gpt-5.4 = doc-grounded API contracts, gpt-5.5 = adversarial re-derivation of your claimed math, Opus = ground-truth reproduction, Fable = ops-reality composition (units/runbooks/code together).
+Foundations, money paths, schema that later work builds on. NOT for test-only or doc PRs — dual-codex (`/mp-codex-review`) suffices there. Each model catches a distinct class (measured on real PRs): one codex model = doc-grounded API contracts, the other = adversarial re-derivation of your claimed math, and the two Claude seats = ground-truth reproduction and ops-reality composition (units/runbooks/code together).
 
 ## Round 1 — four independent reviewers, one message
 
 1. Build ONE shared bundle file (`/tmp/gate-bundle-<id>.txt`): premortem prompt (verbatim from mp-codex-review) + **SCOPE NOTE** (what is deferred-by-design to named follow-ups — without it reviewers re-raise deferred items every round) + PR title/body + diff + relevant ADR/design docs + any glossary.
-2. In ONE tool-use message fire all four: two codex Bash calls (per mp-codex-review) AND two Agent calls — `model: "opus"` and `model: "fable"`, `run_in_background: true`, `subagent_type: general-purpose`. Agent prompt: read the bundle file, follow its premortem instructions, ground-truth against the repo read-only, do NOT read other reviewers' outputs (`/tmp/mp-codex-review-*`, `/tmp/gate-*`), final message = the raw review ending in the exact `SHIPPABLE:`/`RECOMMENDATION:` lines.
+2. In ONE tool-use message fire all four: two codex Bash calls (per mp-codex-review) AND two Agent calls — `model:` set to the two strongest available Claude models per `~/.claude/MODELS.md` (fallback order lives there, not here), `run_in_background: true`, `subagent_type: general-purpose`. Agent prompt: read the bundle file, follow its premortem instructions, ground-truth against the repo read-only, do NOT read other reviewers' outputs (`/tmp/mp-codex-review-*`, `/tmp/gate-*`), final message = the raw review ending in the exact `SHIPPABLE:`/`RECOMMENDATION:` lines.
 3. Optionally also fire `/codex-architecture-review` on the touched seam — its [D1-NOW]-style items fold into the fix round; the rest become follow-up notes.
 
 ## Convergence

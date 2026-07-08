@@ -15,7 +15,7 @@ spec. It REJECTS and states why — it does not fix.
 |---|---|
 | Correctness premortem | codex 5.5 + codex 5.4 (xhigh) — via `mp-codex-review`; converge both |
 | Architecture / deepening | `mp-improve-codebase-architecture` on **codex 5.5 AND Opus 4.8** — converge |
-| Security advisor | Opus 4.8 + Fable 5 (if available) — fresh context each |
+| Security advisor | strongest available Claude models per `~/.claude/MODELS.md` — fresh context each |
 | Domain expert | Opus 4.8 (+ codex for a second read on anything money/on-chain) |
 | Spec / standards | `mp-review` — Opus 4.8 |
 

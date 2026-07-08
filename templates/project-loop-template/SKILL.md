@@ -1,50 +1,89 @@
 ---
 name: PROJECT-loop
-description: "TEMPLATE — copy to <your-repo>/.claude/skills/<project>-loop/ and fill the <...> slots. Autonomously build ONE rung of <PROJECT> end-to-end: detect what merged last, go deep with Opus subagents, verify with a custom cross-model reviewer team, converge, escalate money-path to the owner, then update docs + retro + handoff so the owner /clears and reruns. Triggers: '<project>-loop', 'build next rung', 'next PR'."
+description: "TEMPLATE — copy to <your-repo>/.claude/skills/<project>-loop/ and fill the <...> slots. Autonomously build ONE rung of <PROJECT> end-to-end: orient from the merged tip, batch-grill the owner only if a design fork exists, build with builder agents, gate through the deterministic rung-gate workflow (tiered: money/logic/mech), converge, notify the owner the moment it's mergeable, and persist with a capped retro + product burn-down. Triggers: '<project>-loop', 'build next rung', 'next PR', 'keep looping'."
 ---
 
-# <PROJECT>-loop — one rung, end to end, autonomous
+# <PROJECT>-loop — one rung, end to end, autonomous (v2)
 
-Project-specific instance of the `loop-forge` lifecycle (read `loop-forge`, `agent-team`, `deep-work` first).
-The owner MERGES each rung; you never merge. This is a TEMPLATE — replace every `<...>`.
+Project instance of the `loop-forge` lifecycle, v2 shape: the MACHINERY lives in typed agents
+(`.claude/agents/`: rung-builder, verifier, codex-runner, security-reviewer, product-guardian,
+arch-reviewer, doc-scribe — from `templates/agents/`) and the deterministic gate
+(`.claude/workflows/rung-gate.js` — from `templates/rung-gate.js`). This file is the JUDGMENT
+layer only. Model roster: `~/.claude/MODELS.md` (never hardcode model names/dates here; template:
+`templates/MODELS.md`). The owner MERGES every rung; the STOP door is machine-GUARDED by
+`.claude/hooks/stop-door.sh` (accident-grade string matching, tested block/allow suites — NOT an
+adversarial sandbox; the red lines below still bind you where the regex can't see). If the hook
+blocks you, that action was an owner-only red line: surface, don't work around — routing around
+the hook (variables, helper scripts, encodings) is itself a red-line violation.
 
-## Inputs (fill these in)
-- Roadmap / PR ladder: `<path to PRD / roadmap>`
-- Design docs / ADRs / glossary: `<paths — e.g. docs/adr/, CONTEXT.md>`
-- Tracker: `<gh repo / issue source>`
-- Build + verify commands: `<the real CI gate — e.g. "cargo test", "npm test && npm run build">`
-- Ownership / branch / merge conventions: `<e.g. owner-owned tree, sudo -u X for git; owner merges to main>`
+**Inputs (fill in):** `docs/state/loop-state.md` (read FIRST — newest rules bind); roadmap/PR
+ladder `<ROADMAP-PATH>`; ADRs/design docs `<paths>`; CONTEXT.md;
+`.claude/docs/PRODUCT-INVARIANTS.md`; tracker `<issue source — and how much to trust it vs the
+ladder>`.
 
-## Model doctrine (highest intelligence everywhere; more on verification)
-- Execution (orchestrator + all workers) = **Opus 4.8**. Workers are Opus subagents — never route
-  code/reasoning/review to a low-intelligence model to save tokens.
-- Verification (the reviewer seats) = **codex 5.5 + 5.4 (xhigh) + Opus 4.8 (+ Fable 5 if available)**, fresh
-  context, cross-model. Architecture review on codex 5.5 AND Opus. Correctness is the constraint, not cost.
+## The loop (one iteration = one rung → one mergeable PR)
 
-## The loop (one iteration = one rung → one PR)
-1. **Orient** — handoff prompt if given, else detect what merged last + the next unblocked rung on the ladder.
-   Load its slice + the docs it touches. Confirm acceptance criteria. Read the prior `docs/state/loop-state.md`.
-2. **Build as a team** — branch; split into worker CARDS (TASK/INPUT/DONE-MEANS/DO-NOT/RETURN/DEVIATIONS);
-   Opus workers, one card each, own branch/scope, two never touch one file, you merge. Honor `<landmines>`.
-3. **Verify for real** — run `<the real CI gate>` (know your false-greens). Build/typecheck AND drive the
-   actual behavior when there's a runtime surface.
-4. **Spawn the custom reviewer team** — from `agent-team/references/reviewer-roles.md`, generated from what the
-   rung touches (security / domain / architecture / correctness premortem / spec), each fresh-context +
-   loaded with its role + skills + the diff + the docs, cross-model. Machines gate first, then reviewers grade
-   against DONE-MEANS, PASS/FAIL, reject-not-fix. Feed findings back; re-review; the maker never grades itself.
-5. **Converge + escalate** — done when every lens PASSES (or a finding is consciously accepted). Money-path
-   fork → options + recommendation, filter once through Fable + codex, then grill the owner. Non-money
-   ambiguity you resolve; escalate only after ~5–10 non-converging rounds.
-6. **Ship + persist + retro** — leave the PR MERGEABLE (owner merges). Update docs + ADRs + memory. Change
-   report + 5-question acceptance quiz for the owner. Retro into `docs/state/loop-state.md` (shipped / failed
-   + why / one new brief-rule). Write a handoff so the owner `/clear`s + reruns.
+1. **Orient (≤15 min).** Handoff given → use it. Else: git log + PR list → what merged last →
+   next unblocked rung on the ladder. Read its slice + only the docs it touches. Compute the
+   BURN-DOWN (N PRs to the next demo-able milestone) — it opens and closes every session.
+2. **Batched grill (ONLY if the rung has a genuine design fork).** ONE options sheet: every open
+   decision ranked, each with a recommended default and a one-line tradeoff, in layman terms.
+   Include the standing checklist ("anything here retired/forbidden?") and the accepted-residuals
+   table. The owner answers once, in one sitting — NEVER one-question-at-a-time serial grilling
+   (measured cost: 3 calendar days for 3 hours of work). No fork → skip; the ADRs already decide
+   most things.
+3. **Size the rung BEFORE building.** >1 seam, more additions than `<your threshold, e.g.
+   ~1,500>`, or mixed money+plumbing → SPLIT now. (15+ blockers in gate round 1 = you sized
+   wrong.) Batch trivially small rungs 2–3 per session.
+4. **Build as a team.** You are the orchestrator — architectural decisions only, no grunt work.
+   Split into worker CARDS (TASK/INPUT/DONE-MEANS/DO-NOT/RETURN/DEVIATIONS); spawn `rung-builder`
+   agents, one card each, disjoint file scopes (worktree isolation if they must touch neighbors).
+   You integrate. Parity across variants is a card-level requirement, not an afterthought.
+5. **Machines before reviewers.** Spawn `verifier`. FAIL → fix before any model reads the diff.
+6. **Gate = run the workflow, don't improvise it:** `/rung-gate` with
+   `{tier, branch, mergeBase, sha, rung, spec, priorRefuted}`.
+   - **money** (`<your money tier: funds/dispatch/auth/irreversible>`): full seats — dual codex +
+     security-reviewer + product-guardian (+arch r1).
+   - **logic** (state machines, non-money runtime): dual codex + arch r1.
+   - **mech** (plumbing, wiring, docs, mechanical refactors): single codex round. History shows
+     the lean path is safe here.
+   The workflow enforces: REFUTED ledger, void-round handling (quota echo / sandbox), SHA
+   stamping, 5-round cap → split-scope, closure review of fix commits, owner-fork escalation,
+   money-tier floor from the verifier's report. Trust its verdict object; never fabricate a
+   verdict from a dead round.
+7. **Escalation.** Money-path fork → build options + recommendation, pre-filter once through the
+   strongest available independent model + codex (per `~/.claude/MODELS.md`), then grill the
+   owner (batched format). Non-money ambiguity → resolve yourself; escalate only after genuine
+   reviewer divergence. Never proceed on a money-path guess.
+8. **A turn is not done at "built".** Done-for-this-turn = gate LAUNCHED or CONVERGED (a
+   committed-but-unreviewed rung once sat ~21h). If anything stalls (API error, killed task,
+   reviewer quota) → write `docs/state/resume-<rung>.md` (one line: state + next command) AND
+   notify the owner. Never wait silently — a silent crash once cost 6 calendar days.
+9. **Finish.** When converged + CI green + MERGEABLE: push (never to prod/main — the hook guards
+   this), spawn `doc-scribe` (capped ceremony: ≤2 artifacts, retro ≤15 lines, memory prune,
+   burn-down handoff), then NOTIFY the owner immediately: "**PR #N ready to merge** + gate
+   verdict + residuals + burn-down". Then either STOP for the merge, or — if the owner has
+   authorized pipelining — start the next rung in a worktree branched from the pending tip
+   (rebase after the merge). Merge latency, not review, is the measured #1 throughput limiter.
+10. **Pace check (every ~5 merged rungs).** One subagent, one question: "are the last 5 rungs
+    moving the product toward what the owner can use, or gold-plating?" — cite the burn-down.
+    (A gold-plating spiral once ran for weeks before an audit caught it.)
 
-## STOP — red lines (write your own; these are the defaults)
-Never: merge, push to main, delete backups/keys/DBs, move funds, deploy, or proceed on a money-path guess —
-all owner-only. Uncertain → surface, don't do. Never re-open frozen design contracts.
+## Landmines (top 5 — the rest live in the agent charters, where they're ENFORCED)
+- `<ownership/build choreography>`
+- `<CI truth: which config file, which jobs, which subsets are false-greens>`
+- `<CI-infrastructure failure modes and remedies>`
+- `<toolchain quirks>`
+- `<frozen contracts: ADRs / invariants that findings may not re-open>`
 
-## Loop hygiene (the five diseases)
-Blind (this skill picks the rung, not you) · Tangled (own branch per worker) · Nodding (a SEPARATE reviewer
-that actually rejects) · Amnesiac (state on disk — `loop-state.md`) · Manual (a real trigger). Caps when
-scheduled: per-run timeout, daily budget, max attempts + a human merge gate. Metric: cost per accepted result
-— <50% kept = mis-scoped, split the rung.
+## STOP — red lines (machine-enforced by the hook; listed so you never test them)
+Never: merge a PR · push to `<PROD-BRANCH>`/main or force-push · delete/overwrite protected data
+(keys, backups, DBs) · `<project-specific irreversibles: move funds / deploy prod / …>` · proceed
+on a money-path guess · re-open frozen contracts. Uncertain → surface to the owner. The hook
+blocking you is a feature, not an obstacle.
+
+## Retro discipline (compounding, with teeth)
+Every rung: doc-scribe appends ≤15 lines to `docs/state/loop-state.md`. A lesson that is a
+COMMAND or CHECK must also land in its machine home the SAME session (hook / verifier charter /
+gate script / CI) — a lesson stored only as prose WILL repeat (measured: three "learned" lessons
+all recurred until they became machine checks).

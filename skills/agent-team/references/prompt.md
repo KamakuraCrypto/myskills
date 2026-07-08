@@ -22,17 +22,18 @@ files you may not touch). Then proceed.
 - YOU (orchestrator, premium, high effort): split the goal, write one worker CARD per task
   (TASK / INPUT / DONE-MEANS / DO-NOT / RETURN <10 lines / DEVIATIONS = conservative + logged), integrate
   results. Never do grunt work yourself.
-- WORKERS (cheap tier — Haiku for drafts/formatting/boilerplate, Sonnet or an Opus subagent for real
-  reasoning): one narrow card each, own clean context, own folder/branch. Two workers NEVER write the same
-  file — you merge.
+- WORKERS (strongest available Claude subagents — per `~/.claude/MODELS.md`; never route code/reasoning
+  to a low tier to save tokens; Haiku only ever for a throwaway prose draft): one narrow card each, own
+  clean context, own folder/branch. Two workers NEVER write the same file — you merge.
 - Shape: fan out when tasks are independent, pipeline when order matters (each stage a fresh subagent seeing
   only the prior deliverable; any stage failing twice = stop + report).
-- CHECKER (a SEPARATE fresh-context agent — use the premium verification tier: Fable 5 + codex 5.5/5.4):
-  machines gate first (tests/build/lint/objective checks), then the checker grades against the SPEC only,
-  PASS/FAIL per requirement with evidence; any FAIL fails the whole submission; it rejects and states why,
-  it does NOT fix. I only see work that survived both gates.
-- Routing rule (apply every run): premium for planning + final verification only; cheap tier by default;
-  never spend premium on work a cheap tier passes the checker with; log which tier did each task.
+- CHECKER (a SEPARATE fresh-context agent — the verification tier per `~/.claude/MODELS.md`: codex
+  5.5/5.4 + the strongest available Claude model): machines gate first (tests/build/lint/objective
+  checks), then the checker grades against the SPEC only, PASS/FAIL per requirement with evidence; any
+  FAIL fails the whole submission; it rejects and states why, it does NOT fix. I only see work that
+  survived both gates.
+- Routing rule (apply every run): execution AND verification both run at the highest available
+  intelligence; verification gets MORE of it, cross-model. Correctness is the constraint, not token cost.
 
 **Step 3 — checkpoint clause.** Run end-to-end, use as many subagents as the job needs. Pause for me ONLY
 when it genuinely matters — spending money, sending anything external, an irreversible/destructive action, or
@@ -54,6 +55,6 @@ Run this by hand once with me watching; once it's smooth we wrap it in a `/loop`
 ## Notes
 - This is the org-chart layer; `deep-scan` is how you'd first understand a new repo, and a project `*-loop`
   skill (see the `project-loop-template` (in `templates/`)) is this team wired to a heartbeat for one specific repo.
-- The owner's economics are INVERTED vs the generic barbell: the premium spend is on the CHECKER seat
-  (Fable + codex verifying cheap Opus/Sonnet execution), because on money-path code the verification is the
-  risk. Keep the orchestrator on Opus, the checker on Fable/codex.
+- The owner's economics are INVERTED vs the generic barbell: the spend concentrates on the CHECKER seat
+  (cross-model verification of the execution), because on money-path code the verification is the risk.
+  Roster + fallbacks: `~/.claude/MODELS.md` (template: `templates/MODELS.md` in this repo).

@@ -24,8 +24,12 @@ git clone https://github.com/<you>/myskills ~/myskills
 # 2. install the skills (Claude Code auto-discovers ~/.claude/skills/*)
 cp -r ~/myskills/skills/* ~/.claude/skills/
 
-# 3. (optional) per-project loop: copy the template into a repo and fill the <...> slots
+# 3. the model roster — single source of truth every skill references
+cp ~/myskills/templates/MODELS.md ~/.claude/MODELS.md   # then edit it to your reality
+
+# 4. (optional) per-project loop: copy the template into a repo and fill the <...> slots
 cp -r ~/myskills/templates/project-loop-template <your-repo>/.claude/skills/<project>-loop
+# …and for the full deterministic v2 loop (agents + gate + hook), see "v2" below
 ```
 
 Then, in any repo, on your strongest model (Opus 4.8, high effort): paste **The one-run brief** below, or say
@@ -50,10 +54,11 @@ write this brief again.
 > **MODEL DOCTRINE — highest intelligence everywhere, MORE on verification (do not deviate).** Execution (you
 > as orchestrator + every worker subagent) = **Opus 4.8**; workers are Opus subagents — NEVER route code,
 > reasoning, or review to a low-intelligence model to save tokens (a cheap model is only ever acceptable for a
-> throwaway prose draft). Verification (the reviewer seats) = **codex gpt-5.5 + gpt-5.4 at xhigh + Opus 4.8,
-> plus Fable 5 if you have access** — fresh context, cross-model, because different model families catch
-> different failures; put MORE intelligence on the verify side than the make side. Architecture review runs on
-> **both codex 5.5 AND Opus**. Correctness is the constraint, not cost.
+> throwaway prose draft). Verification (the reviewer seats) = **codex gpt-5.5 + gpt-5.4 at xhigh + the
+> strongest available Claude models (roster + fallbacks: `~/.claude/MODELS.md` — install it from
+> `templates/MODELS.md`; never hardcode names/dates)** — fresh context, cross-model, because different model
+> families catch different failures; put MORE intelligence on the verify side than the make side.
+> Architecture review runs on **both codex 5.5 AND a Claude seat**. Correctness is the constraint, not cost.
 >
 > **PHASE 0 — UNDERSTAND** (skip only if the repo already has a current CONTEXT.md + ADRs). Run a `deep-scan`:
 > fan out read-only Opus subagents + codex to produce a **BUILT / DESIGNED / TARGET** map with `file:line`
@@ -91,8 +96,9 @@ write this brief again.
 > Look at what this slice touches and **generate the reviewer team** from
 > `agent-team/references/reviewer-roles.md`, each a **fresh-context subagent** whose prompt = a role charter +
 > the exact skills it must USE + the diff/spec + `CONTEXT.md`/relevant ADRs, run cross-model: **security
-> advisor** (Opus + Fable — assume BROKEN until proven safe: keys/funds/auth/injection/at-most-once/permission
-> bypass), **domain expert** (Opus + codex — judge vs real mechanics + ground truth, parity gaps), **architecture**
+> advisor** (the strongest Claude models per the roster — assume BROKEN until proven safe: keys/funds/auth/
+> injection/at-most-once/permission bypass), **domain expert** (Opus + codex — judge vs real mechanics +
+> ground truth, parity gaps), **architecture**
 > (`mp-improve-codebase-architecture`, codex 5.5 + Opus), **correctness premortem** (`mp-codex-review` 5.5 + 5.4,
 > xhigh — converge to 0 blockers), **spec/standards** (`mp-review` since the merge-base). Each returns ranked
 > findings {severity | what | file:line | failure/exploit scenario | fix} + PASS/REJECT against the spec. They
@@ -102,7 +108,8 @@ write this brief again.
 > **PHASE 6 — CONVERGE + ESCALATE.** Feed reviewer findings back to the workers; re-review each fix; **the maker
 > never grades itself.** Done only when every lens PASSES (or a finding is consciously accepted). Any
 > **money-path / irreversible / security-critical fork**: build the options + a recommendation, **filter it once
-> through Fable + codex** ("is this actually the best option here?"), then escalate to me with
+> through the strongest available independent Claude model + codex** ("is this actually the best option
+> here?"), then escalate to me with
 > `mp-grill-with-docs` — options + recommendation, my call. Non-money design ambiguity: resolve it yourself;
 > escalate only if reviewers still diverge after ~5–10 rounds. **Never proceed on a money-path guess.**
 >
@@ -128,6 +135,37 @@ write this brief again.
 
 **Lighter variants:** *just understand a repo* → Phase 0 only. *Just review a diff* → Phase 5 only (spawn the
 reviewer team on a branch). *Already set up* → `/loop /<project>-loop` runs the whole thing per rung.
+
+---
+
+## v2: the deterministic loop
+
+v1 of this repo was prose — skills that *describe* the process and trust the model to follow it. v2 turns
+the process into **machines**: the review gate is a workflow script with coded convergence rules, the
+reviewer seats are typed agent charters, the red lines are a `PreToolUse` hook, and the model roster is one
+file everything references.
+
+**The evidence base:** a forensic mining of **41 real sessions** (~5 weeks of an autonomous money-path build
+loop, dozens of independent analysis agents) found that the expensive failures were process failures, not
+model failures — a converged multi-model gate approving a "safety fix" that broke the product's reason to
+exist (no seat represented product intent); quota-dead review rounds parsed into *phantom verdicts*; lessons
+recorded as prose and then violated again ("never push to prod" sat in memory while the allowlist approved
+`git push:*`); a model roster hardcoded into 10+ files going stale simultaneously; and serialization
+(merge waits, one-question-at-a-time grills, silent stalls) dominating wall-clock 10–20×. Every v2 template
+is the machine home for one of those lessons. The system was verified the way it verifies: cross-model
+premortem → 4 fix rounds → dual-codex closure at **10/10 convergence** — and the review of the gate caught
+real bugs in the gate (seat identity, ledger burial, closure carry, tier floor), and the hook blocked its
+own test harness (test suites live in files now). The machinery works; that's not asserted, it was watched.
+
+**The kit (all in `templates/`, installed by PHASE 8 of `loop-forge/references/handoff-prompt.md`):**
+
+| Template | What it is |
+|---|---|
+| **`templates/MODELS.md`** | The single-source-of-truth model roster: skills say "per `~/.claude/MODELS.md`", never a name or date. Fallback order + the void-not-verdict quota rule live here. |
+| **`templates/agents/`** | Seven typed agent charters — rung-builder, verifier (CI-config-as-truth, structured `{pass, report, touchesMoneySurfaces}`), codex-runner (pre-inlined bundles, structured verdicts, void detection, REFUTED ledger), security-reviewer, **product-guardian** (the product-intent seat every safety-only gate is missing, + the accepted-residuals table), arch-reviewer, doc-scribe (ceremony caps + product burn-down). README explains charter-file adoption (works in any session) vs typed agentType registration (next session only). |
+| **`templates/rung-gate.js`** | The review gate as a deterministic workflow: machines-first, tiered seats (money/logic/mech, with a verifier-reported money floor pre- AND post-fix), identity-tracked seats (dead mandatory seat = halt), typed REFUTED ledger, void-round handling, ownerFork escalation at any severity, open-conditions surfacing, 5-round cap → split-scope, closure review of fix commits. |
+| **`templates/stop-door/`** | The red lines as a `PreToolUse` hook (block merge/prod-push/force-push/data-deletion/destructive SQL) + settings snippet + a file-based block/allow test harness + a README on the exit-2 protocol and the honesty clause ("accident-grade string matching, not an adversarial sandbox"). |
+| **`templates/project-loop-template/`** | The v2 per-project loop skill: batched grill (one options sheet, never serial), rung sizing before build, machines-before-reviewers, the tiered gate, done-for-a-turn = review *launched*, owner notification on converged/blocked, pipelining, pace checks, and the retro rule with teeth: a lesson that is a command/check lands in a machine home the same session, or it repeats. |
 
 ---
 
@@ -163,9 +201,12 @@ skill's `SKILL.md` for its own trigger + usage.
 vault with wikilinks, callouts, properties, and Bases views. Handy for keeping ADRs, decision records,
 audits, and retros as a linked knowledge base the loop reads from and writes back to.
 
-### Template
-`templates/project-loop-template/` — a generic, un-tied project loop. Copy into `<repo>/.claude/skills/`, fill
-the `<...>` slots, and you have a one-command autonomous builder for that repo.
+### Templates (the deterministic-loop kit — see "v2" above)
+`templates/MODELS.md` (the model roster) · `templates/agents/` (seven typed agent charters + README) ·
+`templates/rung-gate.js` (the deterministic review-gate workflow) · `templates/stop-door/` (the red-line
+hook + test harness) · `templates/project-loop-template/` (the generic v2 project loop — copy into
+`<repo>/.claude/skills/`, fill the `<...>` slots, and you have a one-command autonomous builder for that
+repo).
 
 ---
 
@@ -174,14 +215,15 @@ the `<...>` slots, and you have a one-command autonomous builder for that repo.
 ```
 understand → grill → architecture → PRD → issues → BUILD (team) → REVIEW (cross-model) → converge → ship → retro
   deep-scan   grill    improve-arch   to-prd  to-issues  agent-team   reviewer-factory    escalate   PR    STATE.md
-                                                          (Opus)       (codex+Opus+Fable)  money→you   (you merge)
+                                                          (Opus)       (codex+Claude seats) money→you  (you merge)
 ```
 
 ## Model doctrine (why "high intelligence everywhere")
 The generic "barbell" says use a cheap model for the volume. This repo **inverts** that for engineering: use
 the strongest model to **execute** (Opus 4.8 orchestrator + workers) and *even more* intelligence to **verify**
-(codex 5.5 + 5.4 + Opus + Fable, fresh context, cross-model) — because on real code the risk lives in the
-verification, and a false PASS costs more than a slow review. Never route code, reasoning, or review to a
+(codex 5.5 + 5.4 + the strongest available Claude models per `~/.claude/MODELS.md`, fresh context,
+cross-model) — because on real code the risk lives in the verification, and a false PASS costs more than a
+slow review. Never route code, reasoning, or review to a
 low-intelligence model to save tokens; if you're keeping under half of what the team produces, the task is
 mis-scoped, not under-powered.
 

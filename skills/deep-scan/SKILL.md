@@ -31,7 +31,8 @@ a dual-codex architecture pass (`codex-architecture-review`) on the key seams. C
 of deepening opportunities + coupling/testability risks. Call out OVER-engineering honestly, not just gaps.
 
 ## Phase 3 — whole-design premortem (adversarial, the whole system as one)
-codex 5.5 + 5.4 (`mp-codex-review`, stdin bundle) + independent Opus + Fable reviewers premortem ALL the
+codex 5.5 + 5.4 (`mp-codex-review`, stdin bundle) + independent Claude reviewers (strongest available per
+`~/.claude/MODELS.md`) premortem ALL the
 design docs together. Surface doc↔doc contradictions, unbuildable assumptions, and money/safety holes each
 per-PR review missed because it only saw one piece. A premortem that finds nothing is a failed premortem.
 

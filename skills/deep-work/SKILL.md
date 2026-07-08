@@ -1,6 +1,6 @@
 ---
 name: deep-work
-description: Operating manual for hard, multi-step engineering work — how to decompose a big task, verify your own output before reporting, keep context lean, and decide what to do next vs escalate. Read this at the START of any substantial task (a review, a migration, a build spanning many files, a design, an audit, anything that would take a human days). Distilled from Fable 5's working method so a daily model (Opus 4.8) inherits it. Triggers: any complex/multi-step/ambiguous engineering task; "decompose this", "how should I approach", the start of a build/review/audit/design rung.
+description: Operating manual for hard, multi-step engineering work — how to decompose a big task, verify your own output before reporting, keep context lean, and decide what to do next vs escalate. Read this at the START of any substantial task (a review, a migration, a build spanning many files, a design, an audit, anything that would take a human days). Distilled from a frontier model's working method so any daily model inherits it (models per ~/.claude/MODELS.md). Triggers: any complex/multi-step/ambiguous engineering task; "decompose this", "how should I approach", the start of a build/review/audit/design rung.
 ---
 
 # Deep work — decompose, verify, decide

@@ -1,9 +1,10 @@
 # Agent-team templates — cards, shapes, checker, three teams
 
-> **Model doctrine (this operator):** workers = **Opus 4.8** subagents; checkers = **codex 5.5 + 5.4 +
-> Opus 4.8 (and Fable 5 if available)**, fresh context, cross-model. Where the generic templates below say
-> "cheap tier", read **Opus 4.8** — never route important work (code/reasoning/review) to Haiku. Haiku is
-> only ever OK for a throwaway prose draft.
+> **Model doctrine (this operator):** workers = strongest-available Claude subagents; checkers = **codex
+> 5.5 + 5.4 + the strongest available Claude models** (roster + fallbacks: `~/.claude/MODELS.md`; template:
+> `templates/MODELS.md` in this repo), fresh context, cross-model. Where the generic templates below say
+> "cheap tier", read the strongest available model — never route important work (code/reasoning/review) to
+> Haiku. Haiku is only ever OK for a throwaway prose draft.
 
 ## Worker card (give the orchestrator this format once)
 ```
@@ -23,7 +24,7 @@ GOAL: <outcome> with checkable receipts.
 1. split into 3-5 independent sub-tasks
 2. one worker per sub-task, each in its own context / folder / branch
 3. every result returns as {claim/deliverable + evidence + source}
-4. a fresh-context checker (Fable/codex) attacks every result; only survivors reach me
+4. a fresh-context checker (cross-model, per the roster) attacks every result; only survivors reach me
 ```
 
 ## Pipeline (sequential) — one stage's output is the next's input

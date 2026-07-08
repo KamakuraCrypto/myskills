@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Run a task as an AGENT TEAM instead of prompting one model — clarify unknowns with a grill/blindspot pass (grill-with-docs when the task touches a documented domain), write a four-part brief, delegate to cheap workers as isolated worker-cards, gate output through machines-then-a-fresh-context-checker, spend premium models (Fable + codex) on VERIFICATION not grunt work, and retro into a state file. Use for any task big enough to split into independent checkable pieces, or when the user wants to "run a team / orchestrate agents / brief instead of prompt / set up the verify-with-other-models workflow". Triggers: "agent-team", "run a team", "brief the team", "orchestrate this", "barbell", "checker seat", "grill me then build".
+description: Run a task as an AGENT TEAM instead of prompting one model — clarify unknowns with a grill/blindspot pass (grill-with-docs when the task touches a documented domain), write a four-part brief, delegate to workers as isolated worker-cards (strongest available models — see ~/.claude/MODELS.md), gate output through machines-then-a-fresh-context-checker, spend the MOST intelligence on VERIFICATION (cross-model: codex + the strongest Claude reviewers) not grunt work, and retro into a state file. Use for any task big enough to split into independent checkable pieces, or when the user wants to "run a team / orchestrate agents / brief instead of prompt / set up the verify-with-other-models workflow". Triggers: "agent-team", "run a team", "brief the team", "orchestrate this", "barbell", "checker seat", "grill me then build".
 ---
 
 # Agent-team — stop prompting the worker, brief the team
@@ -20,7 +20,8 @@ domains — the grill IS the "make the model pull the brief out of you" move.)
   definition of done, not the whole plan.
 - **Checker(s)** — SEPARATE agents, fresh context, zero memory of how the work was made, stricter rules; the
   only job is to REJECT weak output. This is where the **most intelligence + cross-model diversity goes:
-  codex gpt-5.5 + gpt-5.4 (xhigh) AND Opus 4.8 (and Fable 5 if you have access)**.
+  codex gpt-5.5 + gpt-5.4 (xhigh) AND the strongest available Claude models (roster + fallbacks:
+  `~/.claude/MODELS.md`; template: `templates/MODELS.md` in this repo)**.
   Different model families catch different failures — run the same review through more than one. Custom
   role-scoped reviewers (security advisor, domain expert, architecture) are spawned per build — see
   "Reviewer-team factory" below.
@@ -30,9 +31,9 @@ domains — the grill IS the "make the model pull the brief out of you" move.)
 ## Intelligence doctrine (NOT a cheap barbell — high intelligence everywhere)
 The split here is **execution vs verification**, not cheap vs premium:
 - Execution (plan / build / integrate): **Opus 4.8** (orchestrator + workers).
-- Verification (the checker seats): **codex 5.5 + 5.4 + Opus 4.8 (and Fable 5 if available)**, fresh context,
-  cross-model — always the highest intelligence, and MORE of it on the verify side because that's where the
-  money-path risk lives.
+- Verification (the checker seats): **codex 5.5 + 5.4 + the strongest available Claude models
+  (`~/.claude/MODELS.md`)**, fresh context, cross-model — always the highest intelligence, and MORE of it on
+  the verify side because that's where the money-path risk lives.
 - Research/premortem: Opus 4.8 subagents AND codex 5.5/5.4 — use both.
 - Architecture review: run `mp-improve-codebase-architecture` on BOTH codex 5.5 AND Opus 4.8, converge.
 - Never route anything important to a low-intelligence model to save tokens — correctness is the constraint,
