@@ -21,7 +21,7 @@ hat — bundles, tips, blockhash/LVBH, durable nonces, gRPC commitment, curve me
    {claim | RIGHT/WRONG/RISKY | reasoning | file:line | severity} + parity gaps.
 3. **Architecture review**: the deepening/testability lens + a dual-codex architecture pass on the key
    seams → one ranked list. Flag over-engineering, not just gaps.
-4. **Whole-design premortem**: codex 5.5 + 5.4 + independent Claude reviewers (strongest available per
+4. **Whole-design premortem**: codex gpt-5.6-sol + gpt-5.5 + independent Claude reviewers (strongest available per
    `~/.claude/MODELS.md`), all the design docs as ONE
    system — contradictions, unbuildable assumptions, money/safety holes. Be adversarial.
 5. **Pace check**: bluntly — fastest path to the working product, or over-engineered / backwards? Recommend

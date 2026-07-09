@@ -1,6 +1,6 @@
 ---
 name: mp-4model-gate
-description: Run a 4-model review gate on a PR — codex gpt-5.5 + gpt-5.4 xhigh premortems plus two independent Claude reviewer seats (strongest available per ~/.claude/MODELS.md) as Agent-tool reviewers, optional dual-codex architecture review, convergence loop with fix rounds and a verified condition-closure commit. Use when the user wants the full gate / 4-model review on a PR, or for high-risk rungs of a PR ladder (money paths, foundations, hot sell paths); for routine PRs prefer plain /mp-codex-review. Triggers: "4-model gate", "full gate", "run the gate on PR N".
+description: Run a 4-model review gate on a PR — codex gpt-5.6-sol + gpt-5.5 xhigh premortems plus two independent Claude reviewer seats (strongest available per ~/.claude/MODELS.md) as Agent-tool reviewers, optional dual-codex architecture review, convergence loop with fix rounds and a verified condition-closure commit. Use when the user wants the full gate / 4-model review on a PR, or for high-risk rungs of a PR ladder (money paths, foundations, hot sell paths); for routine PRs prefer plain /mp-codex-review. Triggers: "4-model gate", "full gate", "run the gate on PR N".
 ---
 
 # mp-4model-gate

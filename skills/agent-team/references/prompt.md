@@ -28,7 +28,7 @@ files you may not touch). Then proceed.
 - Shape: fan out when tasks are independent, pipeline when order matters (each stage a fresh subagent seeing
   only the prior deliverable; any stage failing twice = stop + report).
 - CHECKER (a SEPARATE fresh-context agent — the verification tier per `~/.claude/MODELS.md`: codex
-  5.5/5.4 + the strongest available Claude model): machines gate first (tests/build/lint/objective
+  gpt-5.6-sol/gpt-5.5 + the strongest available Claude model): machines gate first (tests/build/lint/objective
   checks), then the checker grades against the SPEC only, PASS/FAIL per requirement with evidence; any
   FAIL fails the whole submission; it rejects and states why, it does NOT fix. I only see work that
   survived both gates.

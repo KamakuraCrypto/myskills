@@ -54,11 +54,11 @@ write this brief again.
 > **MODEL DOCTRINE — highest intelligence everywhere, MORE on verification (do not deviate).** Execution (you
 > as orchestrator + every worker subagent) = **Opus 4.8**; workers are Opus subagents — NEVER route code,
 > reasoning, or review to a low-intelligence model to save tokens (a cheap model is only ever acceptable for a
-> throwaway prose draft). Verification (the reviewer seats) = **codex gpt-5.5 + gpt-5.4 at xhigh + the
+> throwaway prose draft). Verification (the reviewer seats) = **codex gpt-5.6-sol + gpt-5.5 at xhigh + the
 > strongest available Claude models (roster + fallbacks: `~/.claude/MODELS.md` — install it from
 > `templates/MODELS.md`; never hardcode names/dates)** — fresh context, cross-model, because different model
 > families catch different failures; put MORE intelligence on the verify side than the make side.
-> Architecture review runs on **both codex 5.5 AND a Claude seat**. Correctness is the constraint, not cost.
+> Architecture review runs on **both codex gpt-5.6-sol AND a Claude seat**. Correctness is the constraint, not cost.
 >
 > **PHASE 0 — UNDERSTAND** (skip only if the repo already has a current CONTEXT.md + ADRs). Run a `deep-scan`:
 > fan out read-only Opus subagents + codex to produce a **BUILT / DESIGNED / TARGET** map with `file:line`
@@ -76,7 +76,7 @@ write this brief again.
 > **four-part brief**: CONTEXT (what/who/why) · REQUEST (the outcome, not the steps) · OUTPUT FORMAT (exact
 > files/structure/naming) · CONSTRAINTS (stack/tone/budget/files you may not touch).
 >
-> **PHASE 2 — ARCHITECTURE.** Run `mp-improve-codebase-architecture` on **codex 5.5 AND Opus 4.8**; converge to
+> **PHASE 2 — ARCHITECTURE.** Run `mp-improve-codebase-architecture` on **codex gpt-5.6-sol AND Opus 4.8**; converge to
 > one ranked list of the seams the work must respect or create, the coupling/testability risks, and the honest
 > **over-engineering to avoid**. Sets the shape before any code.
 >
@@ -99,7 +99,7 @@ write this brief again.
 > advisor** (the strongest Claude models per the roster — assume BROKEN until proven safe: keys/funds/auth/
 > injection/at-most-once/permission bypass), **domain expert** (Opus + codex — judge vs real mechanics +
 > ground truth, parity gaps), **architecture**
-> (`mp-improve-codebase-architecture`, codex 5.5 + Opus), **correctness premortem** (`mp-codex-review` 5.5 + 5.4,
+> (`mp-improve-codebase-architecture`, codex gpt-5.6-sol + Opus), **correctness premortem** (`mp-codex-review` gpt-5.6-sol + gpt-5.5,
 > xhigh — converge to 0 blockers), **spec/standards** (`mp-review` since the merge-base). Each returns ranked
 > findings {severity | what | file:line | failure/exploit scenario | fix} + PASS/REJECT against the spec. They
 > **reject with reasons; they do NOT fix.** A checker that never rejects isn't reviewing — if every lens passes
@@ -182,7 +182,7 @@ own test harness (test suites live in files now). The machinery works; that's no
 ### The verification engine (premortem loops)
 | Skill | What it is |
 |---|---|
-| **`codex-review`** | Have OpenAI **codex** (gpt-5.5 + gpt-5.4, xhigh) premortem a plan in parallel until both converge — a second model family, deterministic, read-only. |
+| **`codex-review`** | Have OpenAI **codex** (gpt-5.6-sol + gpt-5.5, xhigh) premortem a plan in parallel until both converge — a second model family, deterministic, read-only. |
 | **`codex-review-full`** | Same, with full shell access so codex verifies the plan against the *actual* codebase. |
 | **`codex-architecture-review`** | Dual-codex architecture-improvement pass — deepening opportunities, real seams, testability — converged into one ranked list. |
 | **`mp-codex-review`** | Subagent-safe variant (foreground parallel calls) so a reviewer subagent doesn't exit before codex finishes. |
@@ -221,7 +221,7 @@ understand → grill → architecture → PRD → issues → BUILD (team) → RE
 ## Model doctrine (why "high intelligence everywhere")
 The generic "barbell" says use a cheap model for the volume. This repo **inverts** that for engineering: use
 the strongest model to **execute** (Opus 4.8 orchestrator + workers) and *even more* intelligence to **verify**
-(codex 5.5 + 5.4 + the strongest available Claude models per `~/.claude/MODELS.md`, fresh context,
+(codex gpt-5.6-sol + gpt-5.5 + the strongest available Claude models per `~/.claude/MODELS.md`, fresh context,
 cross-model) — because on real code the risk lives in the verification, and a false PASS costs more than a
 slow review. Never route code, reasoning, or review to a
 low-intelligence model to save tokens; if you're keeping under half of what the team produces, the task is

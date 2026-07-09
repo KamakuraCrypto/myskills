@@ -17,7 +17,7 @@ Updated: <DATE — bump on every edit>
 |---|---|---|
 | Session / orchestrator | whatever you run the session on — e.g. the strongest available Claude model | subagents INHERIT this unless a role says otherwise |
 | Workers (build/integrate) | inherit the session model | never route code/reasoning to a low tier to save tokens; a cheap model is only ever acceptable for a throwaway prose draft |
-| Correctness premortem | a second model FAMILY — e.g. codex gpt-5.5 + gpt-5.4 at xhigh | cross-family diversity is the point. If your CLI config carries a model-migration/alias notice, preflight model identity before calling a round "dual-model" — two aliases of one model is fake diversity; say so rather than claim it |
+| Correctness premortem | a second model FAMILY — e.g. codex gpt-5.6-sol + gpt-5.5 at xhigh | cross-family diversity is the point. If your CLI config carries a model-migration/alias notice, preflight model identity before calling a round "dual-model" — two aliases of one model is fake diversity; say so rather than claim it |
 | Independent reviewer seats (security / domain / product) | strongest available Claude model in FRESH context | fresh context matters more than the exact tier |
 | Architecture | one seat from each family, converge | |
 

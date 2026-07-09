@@ -1,6 +1,6 @@
 ---
 name: codex-architecture-review
-description: Run a dual-codex (gpt-5.5 + gpt-5.4, xhigh, full shell access) ARCHITECTURE-IMPROVEMENT review of a codebase area — find deepening opportunities (deep modules, real seams, testability), informed by CONTEXT.md + docs/adr, and converge the two models into one ranked list. Use when the user wants codex to find refactoring/architecture improvements (not bugs, not a plan premortem). Triggers: "codex architecture review", "/codex-architecture-review", "have codex find deepening opportunities", "codex improve architecture", "run the architecture skill on codex".
+description: Run a dual-codex (gpt-5.6-sol + gpt-5.5, xhigh, full shell access) ARCHITECTURE-IMPROVEMENT review of a codebase area — find deepening opportunities (deep modules, real seams, testability), informed by CONTEXT.md + docs/adr, and converge the two models into one ranked list. Use when the user wants codex to find refactoring/architecture improvements (not bugs, not a plan premortem). Triggers: "codex architecture review", "/codex-architecture-review", "have codex find deepening opportunities", "codex improve architecture", "run the architecture skill on codex".
 ---
 
 # codex-architecture-review
@@ -39,11 +39,11 @@ Both via `Bash` with `run_in_background: true`, both fed the same stdin, `-C` = 
 **Do NOT append `2>/dev/null`** (it hides bwrap sandbox diagnostics; symptom = blank output).
 
 ```bash
-cat <bundle> | codex exec -m gpt-5.5 --config model_reasoning_effort="xhigh" \
+cat <bundle> | codex exec -m gpt-5.6-sol --config model_reasoning_effort="xhigh" \
   --sandbox danger-full-access --full-auto -C <repo root> --skip-git-repo-check
 ```
 ```bash
-cat <bundle> | codex exec -m gpt-5.4 --config model_reasoning_effort="xhigh" \
+cat <bundle> | codex exec -m gpt-5.5 --config model_reasoning_effort="xhigh" \
   --sandbox danger-full-access --full-auto -C <repo root> --skip-git-repo-check
 ```
 
@@ -136,7 +136,7 @@ is noise — prune it.
 
 ## Common pitfalls
 
-- **bwrap blank output** (esp. gpt-5.5): exits 0, stdout empty → it tried to read a file the sandbox
+- **bwrap blank output** (esp. older codex models): exits 0, stdout empty → it tried to read a file the sandbox
   denied, or wrote its verdict to the task log not the redirect file. Check the task `.output` tail
   before assuming failure. If truly blank, re-run that model or inline more anchor files via stdin.
 - **2>/dev/null on review runs** hides the bwrap diagnostic — never use it here.
@@ -149,7 +149,7 @@ is noise — prune it.
 
 | Situation | Command shape |
 |---|---|
-| Dual analysis (per model) | `cat bundle.txt \| codex exec -m gpt-5.5 --config model_reasoning_effort="xhigh" --sandbox danger-full-access --full-auto -C <repo> --skip-git-repo-check` |
+| Dual analysis (per model) | `cat bundle.txt \| codex exec -m gpt-5.6-sol --config model_reasoning_effort="xhigh" --sandbox danger-full-access --full-auto -C <repo> --skip-git-repo-check` |
 | Cross-critique round | rebuild bundle with `=== PRIOR ROUND ===` appended, re-fire both |
 | Interactive deep-dive on one opportunity | hand off to `/mp-improve-codebase-architecture` |
 | Read-only (no disk writes by codex) | swap `--sandbox danger-full-access` → `--sandbox read-only` and inline anchor files |

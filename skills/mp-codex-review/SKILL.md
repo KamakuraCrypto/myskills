@@ -1,15 +1,15 @@
 ---
 name: mp-codex-review
-description: Subagent-safe variant of codex-review. Runs gpt-5.5 + gpt-5.4 codex exec calls as TWO parallel FOREGROUND Bash calls in ONE message — so a subagent invoking this skill does not exit before the codex calls finish. Use when a subagent is reviewing a PR or plan via codex. Same premortem framing, convergence logic, and verdict semantics as `/codex-review`; the only difference is the invocation pattern.
+description: Subagent-safe variant of codex-review. Runs gpt-5.6-sol + gpt-5.5 codex exec calls as TWO parallel FOREGROUND Bash calls in ONE message — so a subagent invoking this skill does not exit before the codex calls finish. Use when a subagent is reviewing a PR or plan via codex. Same premortem framing, convergence logic, and verdict semantics as `/codex-review`; the only difference is the invocation pattern.
 ---
 
 # mp-codex-review
 
-Same dual-model premortem as `/codex-review` (gpt-5.5 + gpt-5.4 at xhigh, convergence loop up to 5 rounds). **The only difference**: invocation pattern is **parallel foreground Bash, not background Bash.**
+Same dual-model premortem as `/codex-review` (gpt-5.6-sol + gpt-5.5 at xhigh, convergence loop up to 5 rounds). **The only difference**: invocation pattern is **parallel foreground Bash, not background Bash.**
 
 ## Why this skill exists
 
-The canonical `/codex-review` skill invokes `codex exec` via `Bash` with `run_in_background: true`, then waits via the completion-notification mechanism. That works when the invoking agent is the main Claude conversation (it doesn't exit while waiting). It does NOT work when the invoking agent is a SUBAGENT — the subagent's harness ends the agent when it emits final text, leaving the background bashes orphaned and the verdicts unreported. Three independent subagents on this project all hit the same failure mode: "Round 1 gpt-5.5 done. Waiting on gpt-5.4." (then exits).
+The canonical `/codex-review` skill invokes `codex exec` via `Bash` with `run_in_background: true`, then waits via the completion-notification mechanism. That works when the invoking agent is the main Claude conversation (it doesn't exit while waiting). It does NOT work when the invoking agent is a SUBAGENT — the subagent's harness ends the agent when it emits final text, leaving the background bashes orphaned and the verdicts unreported. Three independent subagents on this project all hit the same failure mode: "Round 1 gpt-5.6-sol done. Waiting on gpt-5.5." (then exits).
 
 This skill avoids that failure mode by issuing both codex calls as **foreground Bash calls in a single tool-use message**. Per the Bash tool's contract, "If the commands are independent and can run in parallel, make multiple Bash tool calls in a single message." That gives true parallel execution without `run_in_background: true`, and both calls block until they return — the subagent stays alive.
 
@@ -25,7 +25,7 @@ Construct one stdin payload containing:
    - PR diff: `gh pr diff N -R <repo>`
 3. Inlined contents of any source files mentioned in the PR or relevant to the review. Each preceded by `=== FILE: <path> ===`.
 
-**Always pre-inline via stdin** — codex's bwrap sandbox has known failure modes (especially gpt-5.5) where internal filesystem access throws a loopback error and the run exits with no usable output. Bundling sidesteps the whole class of failure.
+**Always pre-inline via stdin** — codex's bwrap sandbox has known failure modes (especially older codex models) where internal filesystem access throws a loopback error and the run exits with no usable output. Bundling sidesteps the whole class of failure.
 
 Write the bundle to a temp file (e.g. `/tmp/mp-codex-review-bundle-<pr-or-id>.txt`) so the Bash invocations can `cat` it without quoting hassle.
 
@@ -36,7 +36,7 @@ Write the bundle to a temp file (e.g. `/tmp/mp-codex-review-bundle-<pr-or-id>.tx
 ```bash
 # Tool call 1 (Bash, no run_in_background, timeout 600000ms):
 cat /tmp/mp-codex-review-bundle-<id>.txt | codex exec \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
   --config model_reasoning_effort="xhigh" \
   --sandbox read-only \
   --skip-git-repo-check \
@@ -46,7 +46,7 @@ cat /tmp/mp-codex-review-bundle-<id>.txt | codex exec \
 ```bash
 # Tool call 2 (Bash, no run_in_background, timeout 600000ms):
 cat /tmp/mp-codex-review-bundle-<id>.txt | codex exec \
-  -m gpt-5.4 \
+  -m gpt-5.5 \
   --config model_reasoning_effort="xhigh" \
   --sandbox read-only \
   --skip-git-repo-check \
@@ -64,10 +64,10 @@ Both block. Both return when their codex call finishes. The harness runs them in
 Both calls produce large transcripts with reasoning tokens. Don't dump the full output into your conversation — `grep` the verdict sections:
 
 ```bash
-echo "===== gpt-5.5 verdict ====="
+echo "===== gpt-5.6-sol verdict ====="
 grep -E "^(SHIPPABLE|BLOCKER|SHOULD-FIX|NIT|OVERLAP|RECOMMENDATION|QUESTIONS|  - Q:|  why:|  - )" /tmp/mp-codex-review-gpt55-<id>.txt | head -100
 echo ""
-echo "===== gpt-5.4 verdict ====="
+echo "===== gpt-5.5 verdict ====="
 grep -E "^(SHIPPABLE|BLOCKER|SHOULD-FIX|NIT|OVERLAP|RECOMMENDATION|QUESTIONS|  - Q:|  why:|  - )" /tmp/mp-codex-review-gpt54-<id>.txt | head -100
 ```
 
@@ -153,7 +153,7 @@ Compare your findings above to the prior round. Choose exactly one:
 - **DO NOT split the two Bash calls across messages.** Both must be in ONE tool-use block for the harness to run them in parallel.
 - **Set `timeout` to 600000 ms.** xhigh reasoning commonly takes 3–8 minutes per call. The default 120s will preempt good runs.
 - **DO NOT append `2>/dev/null`.** Stderr carries the bwrap-sandbox diagnostic; without it you'll burn a round wondering why output is empty.
-- **Bundle via stdin, not `--base BRANCH`.** `codex exec review --base BRANCH` triggers bwrap to read repo files, which can fail on gpt-5.5. Pre-inline.
+- **Bundle via stdin, not `--base BRANCH`.** `codex exec review --base BRANCH` triggers bwrap to read repo files, which can fail on some codex models. Pre-inline.
 - **Re-bundle prior round into the next round.** Append a `=== PRIOR ROUND ===` section so models can compute their `OVERLAP:` line. Without it, oscillation detection breaks.
 - **Don't promote NITs to BLOCKERs across rounds.** Fold once and move on.
 - **Don't fold codex's `QUESTIONS:` as if they were defects.** Surface them up to the dispatching agent.
@@ -169,7 +169,7 @@ Compare your findings above to the prior round. Choose exactly one:
 | Step | Action |
 | --- | --- |
 | Bundle | `gh pr view N` + `gh pr diff N` + inlined source files into `/tmp/mp-codex-review-bundle-<id>.txt` |
-| Run | TWO parallel foreground Bash calls in ONE message; `-m gpt-5.5` and `-m gpt-5.4`; `--config model_reasoning_effort="xhigh"`; `--sandbox read-only`; `--skip-git-repo-check`; `timeout 600000` |
+| Run | TWO parallel foreground Bash calls in ONE message; `-m gpt-5.6-sol` and `-m gpt-5.6-sol`; `--config model_reasoning_effort="xhigh"`; `--sandbox read-only`; `--skip-git-repo-check`; `timeout 600000` |
 | Extract | `grep -E "^(SHIPPABLE\|BLOCKER\|SHOULD-FIX\|NIT\|OVERLAP\|RECOMMENDATION\|QUESTIONS)" /tmp/mp-codex-review-gpt5{5,4}-<id>.txt` |
 | Converge | Both `SHIPPABLE: yes` OR both `conditional ≥ 7` with no new BLOCKERs |
 | Iterate | Build next-round bundle with `=== PRIOR ROUND ===` appended; max 5 rounds |

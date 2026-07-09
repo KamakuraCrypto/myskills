@@ -20,7 +20,7 @@ domains — the grill IS the "make the model pull the brief out of you" move.)
   definition of done, not the whole plan.
 - **Checker(s)** — SEPARATE agents, fresh context, zero memory of how the work was made, stricter rules; the
   only job is to REJECT weak output. This is where the **most intelligence + cross-model diversity goes:
-  codex gpt-5.5 + gpt-5.4 (xhigh) AND the strongest available Claude models (roster + fallbacks:
+  codex gpt-5.6-sol + gpt-5.5 (xhigh) AND the strongest available Claude models (roster + fallbacks:
   `~/.claude/MODELS.md`; template: `templates/MODELS.md` in this repo)**.
   Different model families catch different failures — run the same review through more than one. Custom
   role-scoped reviewers (security advisor, domain expert, architecture) are spawned per build — see
@@ -31,11 +31,11 @@ domains — the grill IS the "make the model pull the brief out of you" move.)
 ## Intelligence doctrine (NOT a cheap barbell — high intelligence everywhere)
 The split here is **execution vs verification**, not cheap vs premium:
 - Execution (plan / build / integrate): **Opus 4.8** (orchestrator + workers).
-- Verification (the checker seats): **codex 5.5 + 5.4 + the strongest available Claude models
+- Verification (the checker seats): **codex gpt-5.6-sol + gpt-5.5 + the strongest available Claude models
   (`~/.claude/MODELS.md`)**, fresh context, cross-model — always the highest intelligence, and MORE of it on
   the verify side because that's where the money-path risk lives.
-- Research/premortem: Opus 4.8 subagents AND codex 5.5/5.4 — use both.
-- Architecture review: run `mp-improve-codebase-architecture` on BOTH codex 5.5 AND Opus 4.8, converge.
+- Research/premortem: Opus 4.8 subagents AND codex gpt-5.6-sol/gpt-5.5 — use both.
+- Architecture review: run `mp-improve-codebase-architecture` on BOTH codex gpt-5.6-sol AND Opus 4.8, converge.
 - Never route anything important to a low-intelligence model to save tokens — correctness is the constraint,
   not cost. **Metric: cost per accepted result** — if you keep <50% of what workers hand back, the task is
   mis-scoped (split it), not "use a bigger model" (you're already on the biggest).
@@ -45,8 +45,8 @@ Before verification, GENERATE the reviewer team from what's being built — don'
 For each relevant lens, spawn a fresh-context subagent whose prompt = a role charter + the exact skills it
 must use + the specific diff/spec + the project's CONTEXT.md/ADRs. Standard lenses (pick what the build
 touches): **security advisor** (keys/funds/auth/injection/at-most-once), **domain expert** (the protocol/
-on-chain/business reality), **architecture** (`mp-improve-codebase-architecture`, run on codex 5.5 + Opus),
-**correctness premortem** (`mp-codex-review` 5.5 + 5.4), **spec/standards** (`mp-review`). Each reviewer is
+on-chain/business reality), **architecture** (`mp-improve-codebase-architecture`, run on codex gpt-5.6-sol + Opus),
+**correctness premortem** (`mp-codex-review` gpt-5.6-sol + gpt-5.5), **spec/standards** (`mp-review`). Each reviewer is
 LOADED with the skills it needs (it invokes them itself) and its own role .md — see
 `references/reviewer-roles.md`. This "create the reviewers based on the build" step is what makes the checker
 seat actually thorough instead of a rubber stamp.

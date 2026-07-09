@@ -16,12 +16,12 @@ Read the skills `deep-work`, `agent-team` (+ its `references/reviewer-roles.md` 
 - Execution (you as orchestrator + every worker subagent): **Opus 4.8**. Workers are Opus subagents — NEVER
   route code, reasoning, or review to Haiku or any low-intelligence model to save tokens. (Haiku is only ever
   acceptable for a throwaway prose draft.) Correctness is the constraint, not cost.
-- Verification (the reviewer seats): **codex gpt-5.5 + gpt-5.4 at xhigh + the strongest available Claude
+- Verification (the reviewer seats): **codex gpt-5.6-sol + gpt-5.5 at xhigh + the strongest available Claude
   reviewer models (roster + fallbacks: `~/.claude/MODELS.md` — never hardcode names/dates; template:
   `templates/MODELS.md` in this repo)** — fresh context, cross-model, because different families catch
   different failures. Put MORE intelligence on the verify side than the make side.
-- Architecture review: run `mp-improve-codebase-architecture` on BOTH codex 5.5 AND Opus 4.8 and converge.
-  Premortem: `mp-codex-review` (5.5 + 5.4). Research/scan: Opus 4.8 subagents AND codex.
+- Architecture review: run `mp-improve-codebase-architecture` on BOTH codex gpt-5.6-sol AND Opus 4.8 and converge.
+  Premortem: `mp-codex-review` (gpt-5.6-sol + gpt-5.5). Research/scan: Opus 4.8 subagents AND codex.
 
 ## PHASE 0 — UNDERSTAND (skip if the repo is already mapped with a current CONTEXT.md + ADRs)
 Run a `deep-scan` (fan out read-only Opus subagents + codex): produce a BUILT / DESIGNED / TARGET map with
@@ -39,7 +39,7 @@ Output a locked four-part brief: CONTEXT (what/who/why) · REQUEST (outcome, not
 files/structure/naming) · CONSTRAINTS (stack/tone/budget/files-not-to-touch).
 
 ## PHASE 2 — ARCHITECTURE PASS (cross-model)
-Run `mp-improve-codebase-architecture` on codex 5.5 AND Opus 4.8. Converge to one ranked list of the seams the
+Run `mp-improve-codebase-architecture` on codex gpt-5.6-sol AND Opus 4.8. Converge to one ranked list of the seams the
 build must respect or create, coupling/testability risks, and honest over-engineering to avoid. This sets the
 shape before any code.
 
@@ -62,8 +62,8 @@ exact skills it must USE + the diff/spec + `CONTEXT.md`/relevant ADRs, run cross
 - **Security advisor** (strongest available Claude models per `~/.claude/MODELS.md`, fresh eyes) —
   keys/funds/auth/injection/at-most-once/permission-bypass; assume BROKEN until proven safe.
 - **Domain expert** (Opus + codex for money/on-chain) — judge vs real mechanics + ground truth; parity gaps.
-- **Architecture** — `mp-improve-codebase-architecture` (codex 5.5 + Opus).
-- **Correctness premortem** — `mp-codex-review` (5.5 + 5.4, xhigh); converge to 0 blockers.
+- **Architecture** — `mp-improve-codebase-architecture` (codex gpt-5.6-sol + Opus).
+- **Correctness premortem** — `mp-codex-review` (gpt-5.6-sol + gpt-5.5, xhigh); converge to 0 blockers.
 - **Spec / standards** — `mp-review` since the merge-base.
 Each returns ranked findings {severity | what | file:line | failure/exploit scenario | fix} + PASS/REJECT
 against the spec. They REJECT with reasons; they do NOT fix. A checker that never rejects isn't reviewing —

@@ -1,6 +1,6 @@
 ---
 name: loop-forge
-description: Set up and run the FULL autonomous build lifecycle for any project — combines grill-with-docs (clarify + update CONTEXT/ADRs) → architecture review → PRD → issues → team build (Opus orchestrator + Opus workers) → a custom fresh-context reviewer team (security/domain/architecture/correctness/spec) run cross-model on codex 5.5/5.4 + the strongest available Claude models (per your ~/.claude/MODELS.md roster) → converge → escalate money-path to the owner → ship mergeable + docs + retro + handoff. Use to engineer a repeatable loop for a project, set up autonomous building, or run one rung end-to-end with full verification. Then it emits a project-specific `<project>-loop` skill. Triggers: "loop-forge", "engineer a loop", "set up the loop", "orchestrate the whole lifecycle", "build this project autonomously", "run the full pipeline".
+description: Set up and run the FULL autonomous build lifecycle for any project — combines grill-with-docs (clarify + update CONTEXT/ADRs) → architecture review → PRD → issues → team build (Opus orchestrator + Opus workers) → a custom fresh-context reviewer team (security/domain/architecture/correctness/spec) run cross-model on codex gpt-5.6-sol/gpt-5.5 + the strongest available Claude models (per your ~/.claude/MODELS.md roster) → converge → escalate money-path to the owner → ship mergeable + docs + retro + handoff. Use to engineer a repeatable loop for a project, set up autonomous building, or run one rung end-to-end with full verification. Then it emits a project-specific `<project>-loop` skill. Triggers: "loop-forge", "engineer a loop", "set up the loop", "orchestrate the whole lifecycle", "build this project autonomously", "run the full pipeline".
 ---
 
 # Loop-forge — the whole lifecycle as one orchestrated, cross-model loop
@@ -14,11 +14,11 @@ high effort**. Highest intelligence everywhere; the verification side gets MORE 
 - Execution (plan / build / integrate): **Opus 4.8** (orchestrator + all workers). Workers are Opus subagents,
   NOT Haiku — never route code/reasoning/review to a low-intelligence model. (Haiku only for a throwaway prose
   draft, never anything that matters.)
-- Verification: **codex 5.5 + 5.4 (xhigh) + the strongest available Claude models — roster + fallbacks in
+- Verification: **codex gpt-5.6-sol + gpt-5.5 (xhigh) + the strongest available Claude models — roster + fallbacks in
   `~/.claude/MODELS.md` (never hardcode names/dates here; template: `templates/MODELS.md`)**, fresh context,
   cross-model.
-- Architecture: `mp-improve-codebase-architecture` on **codex 5.5 AND Opus 4.8**, converge. Premortem: codex
-  5.5 + 5.4. Correctness is the constraint, not token cost.
+- Architecture: `mp-improve-codebase-architecture` on **codex gpt-5.6-sol AND Opus 4.8**, converge. Premortem: codex
+  gpt-5.6-sol + gpt-5.5. Correctness is the constraint, not token cost.
 
 ## The lifecycle (each phase names the skill + the models)
 1. **Understand** (new/unfamiliar repo only) — run `deep-scan` (or a lighter phase-0/1) to get the BUILT/
@@ -27,7 +27,7 @@ high effort**. Highest intelligence everywhere; the verification side gets MORE 
    (prioritize questions whose answer changes the plan; blindspot pass if the area is new to him), stress the
    plan against the domain model, and UPDATE CONTEXT.md/ADRs inline as decisions crystallize. Output: a locked
    four-part brief (CONTEXT / REQUEST / OUTPUT / CONSTRAINTS).
-3. **Architecture pass** — `mp-improve-codebase-architecture` on **codex 5.5 + Opus 4.8**; converge to the
+3. **Architecture pass** — `mp-improve-codebase-architecture` on **codex gpt-5.6-sol + Opus 4.8**; converge to the
    seams the build must respect / create.
 4. **Spec → tracker** — `mp-to-prd` then `mp-to-issues`: tracer-bullet vertical slices, each independently
    grabbable, each with an objective DONE-MEANS.

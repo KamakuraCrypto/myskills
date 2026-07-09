@@ -1,6 +1,6 @@
 ---
 name: codex-review-full
-description: Use when Claude has written a plan and the user wants codex to verify it against the actual codebase — runs gpt-5.5 and gpt-5.4 at xhigh reasoning in parallel with full shell access, iterates until both converge. Strict prompt-level prohibition on destructive operations. Prefer `/codex-review` for fast, deterministic reviews that don't need ground-truth checks.
+description: Use when Claude has written a plan and the user wants codex to verify it against the actual codebase — runs gpt-5.6-sol and gpt-5.5 at xhigh reasoning in parallel with full shell access, iterates until both converge. Strict prompt-level prohibition on destructive operations. Prefer `/codex-review` for fast, deterministic reviews that don't need ground-truth checks.
 ---
 
 # codex-review-full
@@ -39,7 +39,7 @@ Both via `Bash` with `run_in_background: true`, both fed the same stdin payload.
 
 ```bash
 cat <bundle> | codex exec \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
   --config model_reasoning_effort="xhigh" \
   --sandbox danger-full-access \
   --full-auto \
@@ -49,7 +49,7 @@ cat <bundle> | codex exec \
 
 ```bash
 cat <bundle> | codex exec \
-  -m gpt-5.4 \
+  -m gpt-5.5 \
   --config model_reasoning_effort="xhigh" \
   --sandbox danger-full-access \
   --full-auto \
@@ -223,11 +223,11 @@ Then let the user decide between the two readings.
 
 These are the failures that actually keep happening. Watch for them.
 
-- **bwrap loopback (gpt-5.5 especially).** Symptom: codex exits 0, stdout is blank or near-blank. Cause: codex tried to read a file inside its sandbox and bwrap denied it. This skill is more exposed to it than `/codex-review` because it relies on codex reading from disk. If it hits, switch to `/codex-review` for that round (bundle everything via stdin, no disk reads), then come back here for follow-ups once the loopback clears. Switching `--sandbox` modes within this skill does **not** fix it — the failure is in how the bwrap container is set up, not in the flag.
+- **bwrap loopback (older codex models especially).** Symptom: codex exits 0, stdout is blank or near-blank. Cause: codex tried to read a file inside its sandbox and bwrap denied it. This skill is more exposed to it than `/codex-review` because it relies on codex reading from disk. If it hits, switch to `/codex-review` for that round (bundle everything via stdin, no disk reads), then come back here for follow-ups once the loopback clears. Switching `--sandbox` modes within this skill does **not** fix it — the failure is in how the bwrap container is set up, not in the flag.
 - **Codex hit the destructive-op rule mid-verification.** Working as intended. The blocked check shows up in the report as a finding ("plan requires destructive operation X to verify; not run from review context"). Don't relax the prohibition to push the review through — the user can run the destructive op themselves after seeing the finding.
 - **Codex burned the reasoning budget reading files instead of reviewing.** Symptom: thin verdict, no clear BLOCKER / SHOULD-FIX breakdown, lots of `cat`/`grep` in the transcript but no synthesis. Fix: switch to `/codex-review` for that round with tighter anchor files inlined, then return here for the next round.
 - **Stderr suppression on reviews.** `2>/dev/null` is fine for chatty edit runs where thinking tokens are noise. On review runs it hides the bwrap diagnostic and you'll waste a round wondering why output is empty.
-- **Re-asking model / effort every invocation.** The defaults are settled: dual gpt-5.5 + gpt-5.4 at xhigh for review. Only prompt the user when they explicitly want something else.
+- **Re-asking model / effort every invocation.** The defaults are settled: dual gpt-5.6-sol + gpt-5.5 at xhigh for review. Only prompt the user when they explicitly want something else.
 - **Asking for permission to use full access.** Invoking `/codex-review-full` is itself the authorization — the user picked this skill over `/codex-review` precisely to grant `danger-full-access` + `--full-auto`. Don't re-prompt about either flag; they're the baseline here.
 - **Re-introducing should-fixes or nits to the prompt.** The 3-output schema is deliberate. If you re-add categorize-everything-on-a-3-tier-scale to codex's prompt, you'll get verbose reports back and you'll be paused for human input on every round again. Trust the schema: blockers, confidence, questions. Nothing else.
 - **Counting rounds wrong.** A round is one parallel pair, not one model run. Five rounds = ten codex invocations total.
@@ -238,7 +238,7 @@ These are the failures that actually keep happening. Watch for them.
 
 | Situation                          | Command shape                                                                                         |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Default dual premortem (per model) | `cat bundle.txt \| codex exec -m gpt-5.5 --config model_reasoning_effort="xhigh" --sandbox danger-full-access --full-auto -C <repo> --skip-git-repo-check` |
+| Default dual premortem (per model) | `cat bundle.txt \| codex exec -m gpt-5.6-sol --config model_reasoning_effort="xhigh" --sandbox danger-full-access --full-auto -C <repo> --skip-git-repo-check` |
 | Narrow back to read-only           | use `/codex-review` instead — that skill is the read-only sibling                                     |
 | Resume prior session               | `echo "..." \| codex exec --skip-git-repo-check resume --last`                                        |
 | Different working directory        | swap `-C <dir>` value                                                                                 |

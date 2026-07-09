@@ -13,8 +13,8 @@ spec. It REJECTS and states why — it does not fix.
 ## Model assignment (always highest intelligence, cross-model)
 | Lens | Models to run it on |
 |---|---|
-| Correctness premortem | codex 5.5 + codex 5.4 (xhigh) — via `mp-codex-review`; converge both |
-| Architecture / deepening | `mp-improve-codebase-architecture` on **codex 5.5 AND Opus 4.8** — converge |
+| Correctness premortem | codex gpt-5.6-sol + codex gpt-5.5 (xhigh) — via `mp-codex-review`; converge both |
+| Architecture / deepening | `mp-improve-codebase-architecture` on **codex gpt-5.6-sol AND Opus 4.8** — converge |
 | Security advisor | strongest available Claude models per `~/.claude/MODELS.md` — fresh context each |
 | Domain expert | Opus 4.8 (+ codex for a second read on anything money/on-chain) |
 | Spec / standards | `mp-review` — Opus 4.8 |
@@ -42,7 +42,7 @@ Return: shallow modules leaking complexity, seams that should exist but don't, c
 would bite the next rung, and honest OVER-engineering. Ranked {seam | issue | refactor | effort | blocking?}.
 
 ### Correctness premortem
-Run `mp-codex-review` (gpt-5.5 + gpt-5.4, xhigh, bundle via stdin). Premortem the diff against the spec + the
+Run `mp-codex-review` (gpt-5.6-sol + gpt-5.5, xhigh, bundle via stdin). Premortem the diff against the spec + the
 whole design as one system. Converge both models to 0 blockers. Extract the verdict after the last `^codex$`.
 
 ### Spec / standards

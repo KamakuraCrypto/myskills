@@ -1,7 +1,7 @@
 # Agent-team templates — cards, shapes, checker, three teams
 
 > **Model doctrine (this operator):** workers = strongest-available Claude subagents; checkers = **codex
-> 5.5 + 5.4 + the strongest available Claude models** (roster + fallbacks: `~/.claude/MODELS.md`; template:
+> gpt-5.6-sol + gpt-5.5 + the strongest available Claude models** (roster + fallbacks: `~/.claude/MODELS.md`; template:
 > `templates/MODELS.md` in this repo), fresh context, cross-model. Where the generic templates below say
 > "cheap tier", read the strongest available model — never route important work (code/reasoning/review) to
 > Haiku. Haiku is only ever OK for a throwaway prose draft.

@@ -1,6 +1,6 @@
 ---
 name: codex-review
-description: Use when Claude has written a plan and the user wants codex to premortem it — by default runs gpt-5.5 and gpt-5.4 at xhigh reasoning in parallel, iterates until both converge. Also supports single-shot codex runs, resume, and edit/network sandboxes as escape hatches.
+description: Use when Claude has written a plan and the user wants codex to premortem it — by default runs gpt-5.6-sol and gpt-5.5 at xhigh reasoning in parallel, iterates until both converge. Also supports single-shot codex runs, resume, and edit/network sandboxes as escape hatches.
 ---
 
 # codex-review
@@ -27,7 +27,7 @@ Build one text blob containing:
 2. The full plan text.
 3. Inlined contents of any source files the plan touches, each preceded by a `=== FILE: <path> ===` marker.
 
-**Do this every time** — even when the plan refers to files codex could read on its own. Codex's bwrap sandbox has known failure modes (especially on gpt-5.5) where any internal filesystem access throws a loopback error and the run exits with no usable output. Pre-inlining everything sidesteps the whole class of failure.
+**Do this every time** — even when the plan refers to files codex could read on its own. Codex's bwrap sandbox has known failure modes (especially on older codex models) where any internal filesystem access throws a loopback error and the run exits with no usable output. Pre-inlining everything sidesteps the whole class of failure.
 
 ### Step 2 — fire two `codex exec` calls in parallel
 
@@ -35,7 +35,7 @@ Both via `Bash` with `run_in_background: true`, both fed the same stdin payload:
 
 ```bash
 cat <bundle> | codex exec \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
   --config model_reasoning_effort="xhigh" \
   --sandbox read-only \
   --skip-git-repo-check
@@ -43,7 +43,7 @@ cat <bundle> | codex exec \
 
 ```bash
 cat <bundle> | codex exec \
-  -m gpt-5.4 \
+  -m gpt-5.5 \
   --config model_reasoning_effort="xhigh" \
   --sandbox read-only \
   --skip-git-repo-check
@@ -187,9 +187,9 @@ Then let the user decide between the two readings.
 
 These are the failures that actually keep happening. Watch for them.
 
-- **bwrap loopback (gpt-5.5 especially).** Symptom: codex exits 0, stdout is blank or near-blank. Cause: codex tried to read a file inside its sandbox and bwrap denied it. Fix: rebundle everything via stdin so codex never has to touch the filesystem. Switching `--sandbox` modes does **not** fix this — the failure is in how the bwrap container is set up, not in the flag.
+- **bwrap loopback (older codex models especially).** Symptom: codex exits 0, stdout is blank or near-blank. Cause: codex tried to read a file inside its sandbox and bwrap denied it. Fix: rebundle everything via stdin so codex never has to touch the filesystem. Switching `--sandbox` modes does **not** fix this — the failure is in how the bwrap container is set up, not in the flag.
 - **Stderr suppression on reviews.** `2>/dev/null` is fine for chatty edit runs where thinking tokens are noise. On review runs it hides the bwrap diagnostic and you'll waste a round wondering why output is empty.
-- **Re-asking model / effort every invocation.** The defaults are settled: dual gpt-5.5 + gpt-5.4 at xhigh for review. Only prompt the user when they explicitly want something else.
+- **Re-asking model / effort every invocation.** The defaults are settled: dual gpt-5.6-sol + gpt-5.5 at xhigh for review. Only prompt the user when they explicitly want something else.
 - **Re-asking permission mid-loop.** If the user authorized `danger-full-access` for round 1, it stands for the whole convergence loop. Don't re-prompt every round.
 - **Promoting NITs to BLOCKERs across rounds.** If both models keep flagging the same wording issue, fold it once and move on — don't let it drive another iteration.
 - **Counting rounds wrong.** A round is one parallel pair, not one model run. Five rounds = ten codex invocations total.
@@ -200,7 +200,7 @@ These are the failures that actually keep happening. Watch for them.
 
 | Situation                         | Command shape                                                                                         |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Default dual premortem (per model) | `cat bundle.txt \| codex exec -m gpt-5.5 --config model_reasoning_effort="xhigh" --sandbox read-only --skip-git-repo-check` |
+| Default dual premortem (per model) | `cat bundle.txt \| codex exec -m gpt-5.6-sol --config model_reasoning_effort="xhigh" --sandbox read-only --skip-git-repo-check` |
 | Codex edits files                 | add `--sandbox workspace-write --full-auto`                                                            |
 | Codex needs network               | add `--sandbox danger-full-access --full-auto` (ask once)                                              |
 | Resume prior session              | `echo "..." \| codex exec --skip-git-repo-check resume --last`                                         |
